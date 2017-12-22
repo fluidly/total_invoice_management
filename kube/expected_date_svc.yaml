@@ -24,7 +24,7 @@ spec:
       containers:
       - image: expected_date_svc:v1
         imagePullPolicy: IfNotPresent
-        name: invoices-svc
+        name: expected-date-svc
         ports:
         - containerPort: 8080
           protocol: TCP
