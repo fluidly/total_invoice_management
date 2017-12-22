@@ -1,0 +1,59 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    run: auth-svc
+  name: auth-svc
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      run: auth-svc
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: auth-svc
+    spec:
+      containers:
+      - image: auth_svc:v1
+        imagePullPolicy: IfNotPresent
+        name: auth-svc
+        env:
+        - name: TOKEN
+          value: letmeinpleasekthxbye
+        ports:
+        - containerPort: 8080
+          name: http-api
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-svc
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Module
+      name:  authentication
+      config:
+        auth_service: "auth-svc:3000"
+spec:
+  type: ClusterIP
+  selector:
+    run: auth-svc
+  ports:
+  - port: 3000
+    name: auth-svc
+    targetPort: http-api
