@@ -3,14 +3,14 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    run: invoices-svc
-  name: invoices-svc
+    run: expected-date-svc
+  name: expected-date-svc
   namespace: default
 spec:
   replicas: 3
   selector:
     matchLabels:
-      run: invoices-svc
+      run: expected-date-svc
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -19,49 +19,33 @@ spec:
   template:
     metadata:
       labels:
-        run: invoices-svc
+        run: expected-date-svc
     spec:
       containers:
-      - image: invoices_svc:v2
+      - image: expected_date_svc:v1
         imagePullPolicy: IfNotPresent
         name: invoices-svc
-        env:
-          - name: EXPECTED_DATE_URI
-            value: http://expected-date-svc.default.svc.cluster.local
         ports:
         - containerPort: 8080
           protocol: TCP
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-      securityContext: {}
       terminationGracePeriodSeconds: 30
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    run: invoices-svc
-  name: invoices-svc
+    run: expected-date-svc
+  name: expected-date-svc
   namespace: default
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v0
-      kind:  Mapping
-      name:  invoices-svc_mapping
-      prefix: /invoices/
-      rewrite: /api/invoices/
-      service: invoices-svc
 spec:
   ports:
   - port: 80
     protocol: TCP
     targetPort: 8080
   selector:
-    run: invoices-svc
+    run: expected-date-svc
   sessionAffinity: None
   type: ClusterIP
